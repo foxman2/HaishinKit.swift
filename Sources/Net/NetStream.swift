@@ -111,13 +111,13 @@ open class NetStream: NSObject {
         }
     }
 
-    open func registerVideoEffect(_ effect: VideoEffect) -> Bool {
+    open func registerVideoEffect(_ effect: VideoEffect) {
         mixer.videoIO.lockQueue.sync {
             self.mixer.videoIO.registerEffect(effect)
         }
     }
 
-    open func unregisterVideoEffect(_ effect: VideoEffect) -> Bool {
+    open func unregisterVideoEffect(_ effect: VideoEffect) {
         mixer.videoIO.lockQueue.sync {
             self.mixer.videoIO.unregisterEffect(effect)
         }

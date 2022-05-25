@@ -44,7 +44,7 @@ final class AVVideoIOUnit: NSObject, AVIOUnit {
     }()
     weak var mixer: AVMixer?
 
-    private(set) var effects: Set<VideoEffect> = []
+    private(set) var effects: [VideoEffect] = []
 
     private var extent = CGRect.zero {
         didSet {
@@ -373,14 +373,14 @@ final class AVVideoIOUnit: NSObject, AVIOUnit {
         return image
     }
 
-    func registerEffect(_ effect: VideoEffect) -> Bool {
+    func registerEffect(_ effect: VideoEffect) {
         effect.ciContext = context
-        return effects.insert(effect).inserted
+        effects.append(effect)
     }
 
-    func unregisterEffect(_ effect: VideoEffect) -> Bool {
+    func unregisterEffect(_ effect: VideoEffect) {
         effect.ciContext = nil
-        return effects.remove(effect) != nil
+        effects.removeAll(where: {$0 === effect})
     }
 }
 
@@ -417,6 +417,7 @@ extension AVVideoIOUnit {
                     newSampleBuffer = createSampleBuffer(imageBuffer: imageBuffer)
                 }
                 context?.render(image, to: imageBuffer ?? buffer)
+//                context?.render(image, to: imageBuffer ?? buffer, bounds: image.extent, colorSpace: nil)
             }
             renderer?.enqueue(newSampleBuffer ?? sampleBuffer)
         }

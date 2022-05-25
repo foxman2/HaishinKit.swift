@@ -391,7 +391,8 @@ extension AVVideoIOUnit {
         }
 
         var imageBuffer: CVImageBuffer?
-
+        var newSampleBuffer: CMSampleBuffer?
+        
         CVPixelBufferLockBaseAddress(buffer, [])
         defer {
             CVPixelBufferUnlockBaseAddress(buffer, [])
@@ -399,33 +400,50 @@ extension AVVideoIOUnit {
                 CVPixelBufferUnlockBaseAddress(imageBuffer, [])
             }
         }
-
+        
         if renderer != nil || !effects.isEmpty {
             let image: CIImage = effect(buffer, info: sampleBuffer)
             extent = image.extent
             if !effects.isEmpty {
-                #if os(macOS)
+#if os(macOS)
                 CVPixelBufferPoolCreatePixelBuffer(nil, pixelBufferPool, &imageBuffer)
-                #else
+#else
                 if buffer.width != Int(extent.width) || buffer.height != Int(extent.height) {
                     CVPixelBufferPoolCreatePixelBuffer(nil, pixelBufferPool, &imageBuffer)
                 }
-                #endif
+#endif
                 if let imageBuffer = imageBuffer {
                     CVPixelBufferLockBaseAddress(imageBuffer, [])
+                    newSampleBuffer = createSampleBuffer(imageBuffer: imageBuffer)
                 }
                 context?.render(image, to: imageBuffer ?? buffer)
             }
-            renderer?.enqueue(sampleBuffer)
+            renderer?.enqueue(newSampleBuffer ?? sampleBuffer)
         }
-
+        
         encoder.encodeImageBuffer(
             imageBuffer ?? buffer,
             presentationTimeStamp: sampleBuffer.presentationTimeStamp,
             duration: sampleBuffer.duration
         )
-
+        
         mixer?.recorder.appendPixelBuffer(imageBuffer ?? buffer, withPresentationTime: sampleBuffer.presentationTimeStamp)
+    }
+    
+    private func createSampleBuffer(imageBuffer: CVImageBuffer) -> CMSampleBuffer? {
+        
+        var formatDescription: CMVideoFormatDescription?
+        CMVideoFormatDescriptionCreateForImageBuffer(allocator: nil, imageBuffer: imageBuffer, formatDescriptionOut: &formatDescription)
+        
+        guard let formatDescription = formatDescription else {
+            return nil
+        }
+        
+        var timing: CMSampleTimingInfo = CMSampleTimingInfo()
+        var sampleBuffer: CMSampleBuffer?
+        CMSampleBufferCreateReadyWithImageBuffer(allocator: nil, imageBuffer: imageBuffer, formatDescription: formatDescription, sampleTiming: &timing, sampleBufferOut: &sampleBuffer)
+        
+        return sampleBuffer
     }
 }
 

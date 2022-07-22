@@ -108,6 +108,7 @@ public final class VideoCodec {
                 return
             }
             setProperty(kVTCompressionPropertyKey_AverageBitRate, Int(bitrate) as CFTypeRef)
+            invalidateSession = true
         }
     }
     var profileLevel: String = kVTProfileLevel_H264_Baseline_3_1 as String {

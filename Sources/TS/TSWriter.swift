@@ -122,13 +122,13 @@ public class TSWriter: Running {
         }
 
         guard var PES = PacketizedElementaryStream.create(
-            bytes,
-            count: count,
-            presentationTimeStamp: presentationTimeStamp,
-            decodeTimeStamp: decodeTimeStamp,
-            timestamp: PID == TSWriter.defaultVideoPID ? videoTimestamp : audioTimestamp,
-            config: streamID == 192 ? audioConfig : videoConfig,
-            randomAccessIndicator: randomAccessIndicator) else {
+                bytes,
+                count: count,
+                presentationTimeStamp: presentationTimeStamp,
+                decodeTimeStamp: decodeTimeStamp,
+                timestamp: PID == TSWriter.defaultVideoPID ? videoTimestamp : audioTimestamp,
+                config: streamID == 192 ? audioConfig : videoConfig,
+                randomAccessIndicator: randomAccessIndicator) else {
             return
         }
 
@@ -275,6 +275,9 @@ extension TSWriter: VideoCodecDelegate {
             decodeTimeStamp: sampleBuffer.decodeTimeStamp,
             randomAccessIndicator: !sampleBuffer.isNotSync
         )
+    }
+
+    public func videoCodec(_ codec: VideoCodec, errorOccurred error: VideoCodec.Error) {
     }
 }
 
